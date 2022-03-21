@@ -467,32 +467,10 @@ int main()
 
     ofstream outfile(file_output);
 
-
 	int Min_time = 0;
-	int inter_MIN = (int)Max_times * 0.01;
-	vector<int> Random5;
-	//0-Max_times 
-    uniform_int_distribution<> values{inter_MIN,Max_times};
-    random_device rd;
-    for (int k = 0,j=0; Random5.size() < 5; ++k) {
-        default_random_engine rng {rd()};
-        int t = values(rng);
-        if(find(Random5.begin(),Random5.end(),t) == Random5.end() && (Random5.empty() || (t-Random5[j]) > inter_MIN)){
-            Random5.push_back(t);
-            j++;
-        }
-    }
-    sort(Random5.begin(),Random5.end(),less<int>());
-    //95%
-    for (int l = 0; l < Random5.size(); ++l) {
-        int end = Random5[l];
-        DealOneAlg(Min_time, end-inter_MIN+1, Um, Nm,true,outfile);
-        DealOneAlg(end-inter_MIN+1,end+1,Um,Nm, false,outfile);
-        Min_time = end+1;
-        if(l == Random5.size()-1){
-            DealOneAlg(Min_time,Max_times,Um,Nm, true,outfile);
-        }
-    }
-
+	int n_time = Max_times*0.05;
+	DealOneAlg(Min_time, n_time, Um, Nm,false,outfile);
+	DealOneAlg(n_time, Max_times, Um, Nm,true,outfile);
+  
 	return 0;
 }
