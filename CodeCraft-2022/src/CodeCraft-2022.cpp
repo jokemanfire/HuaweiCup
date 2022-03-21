@@ -12,7 +12,7 @@
 using namespace std;
 
 
-//×÷Æ·Ìá½»Â·¾¶
+//ä½œå“æäº¤è·¯å¾„
 string file_root = "/data/";
 string file_Demand = "demand.csv";
 string file_Bandwidth = "site_bandwidth.csv";
@@ -23,42 +23,42 @@ string file_output = "/output/solution.txt";
 
 
 
-//Ò»°ãÊı¾İ¸ñÊ½ÄÚÈİ
+//ä¸€èˆ¬æ•°æ®æ ¼å¼å†…å®¹
 class DatasStruct {
 public:
 	vector<string> headName;
 	vector<vector< string>> Datas;
 };
-//ÓÃ»§Àà
+//ç”¨æˆ·ç±»
 class User
 {
 
 private:
-	//ÓÃ»§µÄĞèÇó´ø¿í
+	//ç”¨æˆ·çš„éœ€æ±‚å¸¦å®½
 	int Need_width;
-	//ÓÃ»§¿ÉÓÃ½ÚµãÊı£¨¿É±ä£©
+	//ç”¨æˆ·å¯ç”¨èŠ‚ç‚¹æ•°ï¼ˆå¯å˜ï¼‰
 	int Usefulsize;
 public:
-	//»ñµÃÓÃ»§µ±Ç°Ê±¿ÌÏÂ´ø¿íĞèÇó
+	//è·å¾—ç”¨æˆ·å½“å‰æ—¶åˆ»ä¸‹å¸¦å®½éœ€æ±‚
 	int GetNeed_width() { return Need_width; };
-	//ÉèÖÃÓÃ»§µ±Ç°Ê±¿ÌÏÂ´ø¿íĞèÇó
+	//è®¾ç½®ç”¨æˆ·å½“å‰æ—¶åˆ»ä¸‹å¸¦å®½éœ€æ±‚
 	void SetNeed_width(int width) { Need_width = width; };
 };
 
 
-//½ÚµãÀà
+//èŠ‚ç‚¹ç±»
 class Node
 {
 private:
-	//µ±Ç°×î´ó´ø¿í
+	//å½“å‰æœ€å¤§å¸¦å®½
 	int MaxWidth;
 
 public:
-	//ÉèÖÃ×î´ó´ø¿í 
+	//è®¾ç½®æœ€å¤§å¸¦å®½ 
 	void SetMaxWidth(int width) { MaxWidth = width; };
-	//»ñµÃµ±Ç°´ø¿í
+	//è·å¾—å½“å‰å¸¦å®½
 	int GetWidth() { return MaxWidth; };
-	//ĞŞ¸Äµ±Ç°¿ÉÓÃ´ø¿í
+	//ä¿®æ”¹å½“å‰å¯ç”¨å¸¦å®½
 	void ADDWidth(int width) { MaxWidth -= width; };
 
 };
@@ -67,9 +67,9 @@ public:
 class UserManage
 {
 private:
-	//ËùÓĞÓÃ»§Ãû
+	//æ‰€æœ‰ç”¨æˆ·å
 	vector<string> Usernames;
-	//²»Í¬Ê±¿ÌÓÃ»§ËùĞè´ø¿í
+	//ä¸åŒæ—¶åˆ»ç”¨æˆ·æ‰€éœ€å¸¦å®½
 	vector<unordered_map<string, int>> WidthNeed;
 public:
 	vector<string>& Get_usersnames() { return Usernames; };
@@ -83,11 +83,11 @@ public:
 class NodeManage
 {
 private:
-	//ËùÓĞÓÃ»§½Úµã
+	//æ‰€æœ‰ç”¨æˆ·èŠ‚ç‚¹
 	vector<string> Nodenames;
-	//´æ´¢Ä¿±ê½ÚµãÏÂµÄ¿ÉÓÃÓÃ»§Ãû³Æ
+	//å­˜å‚¨ç›®æ ‡èŠ‚ç‚¹ä¸‹çš„å¯ç”¨ç”¨æˆ·åç§°
 	unordered_map<string, vector<bool>> UsefulUser_flag;
-	//´æ´¢nodeµÄ´ø¿í
+	//å­˜å‚¨nodeçš„å¸¦å®½
 	unordered_map<string, int> Node_Width;
 public:
 	vector<string>& Get_Nodenames() { return Nodenames; };
@@ -102,7 +102,7 @@ public:
 
 
 
-//×Ö·û´®ÇĞ¸î·½·¨
+//å­—ç¬¦ä¸²åˆ‡å‰²æ–¹æ³•
 std::vector<std::string> stringSplit(const std::string& str, char delim) {
 	std::stringstream ss(str);
 	std::string item;
@@ -115,7 +115,7 @@ std::vector<std::string> stringSplit(const std::string& str, char delim) {
 	return elems;
 }
 
-//È¥³ı»»ĞĞ·û
+//å»é™¤æ¢è¡Œç¬¦
 void strim(string& str)
 {
 	int Pos = str.size() - 1;
@@ -125,7 +125,7 @@ void strim(string& str)
 	}
 }
 
-//»ñÈ¡½á¹¹ÌåÊı¾İ
+//è·å–ç»“æ„ä½“æ•°æ®
 DatasStruct GetData(string filepath)
 {
 	DatasStruct tempData;
@@ -156,7 +156,7 @@ DatasStruct GetData(string filepath)
 }
 
 
-//¶ÁÈ¡iniÎÄ¼şÖĞµÄÅäÖÃ
+//è¯»å–iniæ–‡ä»¶ä¸­çš„é…ç½®
 int ReadQos(string filepath)
 {
 	DatasStruct iniData = GetData(filepath);
@@ -170,99 +170,118 @@ int ReadQos(string filepath)
 	return atoi(Result.c_str());
 }
 
-//Õë¶ÔÒ»¸öÓÃ»§µÄ·ÖÅä
-void NodeAssign(vector<vector<int>>& allc, int user, int node)
+//é’ˆå¯¹ä¸€ä¸ªç”¨æˆ·çš„åˆ†é…
+void NodeAssign(vector<vector<int>>& allc, int user, int node,bool av)
 {
-
-	for (int j = node; j < allc[user].size(); j++)
+	int j = node;
+	// if(av)
+	// 	j = rand()% (allc[user].size()-1)+1;
+	int Max_Count = allc[user].size();
+	int Count =0;
+	while (Count <Max_Count )
 	{
-		//Èç¹û²»ÄÜ·ÖÅä
-		if (allc[user][j] == -1)
+		int s = (j+Count )% ((allc[user].size()-1)+1);
+		//å¦‚æœä¸èƒ½åˆ†é…
+		if (allc[user][s] == -1)
+		{
+			Count++;
 			continue;
+	
+		}
 		else
 		{
-			//½Úµã¿É·ÖÅäÎª0
-			if (allc[0][j] == 0)
-				continue;
-			//ÓÃ»§ĞèÇóĞ¡ÓÚµÈÓÚ¿É·ÖÅä
-			if (allc[user][0] <= allc[0][j])
+			//èŠ‚ç‚¹å¯åˆ†é…ä¸º0
+			if (allc[0][s] == 0)
 			{
-				allc[user][j] += allc[user][0];
-				allc[0][j] -= allc[user][0];
+				Count++;
+				continue;
+			}
+
+			//ç”¨æˆ·éœ€æ±‚å°äºç­‰äºå¯åˆ†é…
+			if (allc[user][0] <= allc[0][s])
+			{
+				allc[user][s] += allc[user][0];
+				allc[0][s] -= allc[user][0];
 				allc[user][0] -= allc[user][0];
 
 			}
-			//ÓÃ»§ĞèÇó´óÓÚ¿É·ÖÅä
+			//ç”¨æˆ·éœ€æ±‚å¤§äºå¯åˆ†é…
 			else
 			{
-				//¸Ã·ÖÅäËùÓĞ´ø¿í
-				//¸üĞÂËù·ÖÅäÎ»ÖÃ
-				allc[user][j] += allc[0][j];
+				//è¯¥åˆ†é…æ‰€æœ‰å¸¦å®½
+				//æ›´æ–°æ‰€åˆ†é…ä½ç½®
+				allc[user][s] += allc[0][s];
 				int temp = allc[user][0];
-				//¸üĞÂÓÃ»§ĞèÇó
-				allc[user][0] -= allc[0][j];
-				//¸üĞÂ½Úµã´ø¿í
-				allc[0][j] -= allc[0][j];
+				//æ›´æ–°ç”¨æˆ·éœ€æ±‚
+				allc[user][0] -= allc[0][s];
+				//æ›´æ–°èŠ‚ç‚¹å¸¦å®½
+				allc[0][s] -= allc[0][s];
 			}
 		}
+		Count++;
 	}
-
 }
-//ÖØĞÂ·ÖÅä
-void Reset(vector<vector<int>>& allc, int user, int node)
+//é‡æ–°åˆ†é…
+void Reset(vector<vector<int>>& allc, int user, int node,bool av)
 {
-	//¼õÉÙ·ÖÅä
+	//å‡å°‘åˆ†é…
 	int Rest_width = allc[user][0];
-	for (int i = 1; i < user; i++)
+	int i = node;
+	// if(av)
+	// 	i = rand()% (user-1)+1;
+	int Max_Count = user;
+	int Count =0;
+	while (Count <Max_Count)
 	{
-		//Èç¹û¿É·ÖÅä
-		if (allc[i][node] != -1)
+		//å¦‚æœå¯åˆ†é…
+		if (allc[Count][node] != -1)
 		{
-			//Èç¹ûÒÑ·ÖÅä´óÓÚĞèÇó
-			if (allc[i][node] > Rest_width)
+			//å¦‚æœå·²åˆ†é…å¤§äºéœ€æ±‚
+			if (allc[Count][node] > Rest_width)
 			{
-				allc[i][node] -= Rest_width;
-				allc[i][0] += Rest_width;
+				allc[Count][node] -= Rest_width;
+				allc[Count][0] += Rest_width;
 				Rest_width -= Rest_width;
 
 			}
-			//Èç¹ûÒÑ·ÖÅäĞ¡ÓÚĞèÇó
+			//å¦‚æœå·²åˆ†é…å°äºéœ€æ±‚
 			else
 			{
-				Rest_width -= allc[i][node];
-				allc[i][node] -= allc[i][node];
+				Rest_width -= allc[Count][node];
+				allc[Count][node] -= allc[Count][node];
 			}
 		}
+		Count++;
 	}
 }
-//µü´ú·ÖÅä Ì°ĞÄËã·¨ user¶ÔÄ¿±êÓÃ»§·ÖÅä£¬node ¶ÔÄ¿±ê½Úµã·ÖÅä
-void AverageChoose(vector<vector<int>>& allc, int user, int node)
+//è¿­ä»£åˆ†é… è´ªå¿ƒç®—æ³• userå¯¹ç›®æ ‡ç”¨æˆ·åˆ†é…ï¼Œnode å¯¹ç›®æ ‡èŠ‚ç‚¹åˆ†é…
+void AverageChoose(vector<vector<int>>& allc, int user, int node,bool av)
 {
 	if (user < allc.size())
-		NodeAssign(allc, user, node);
+		NodeAssign(allc, user, node,av);
 	else
 		return;
-	//Èç¹ûÃ»ÓĞ·ÖÅäÍê
+	//å¦‚æœæ²¡æœ‰åˆ†é…å®Œ
 	if (allc[user][0] != 0)
 	{
 		for (int j = node; j < allc[user].size(); j++)
 		{
 			if (allc[user][j] > 0)
 			{
-				//ResetºóÖØĞÂ·ÖÅä
-				Reset(allc, user, j);
-				//¶Ô¸ÃÓÃ»§·ÖÅä
-				AverageChoose(allc, user, j);
+				//Resetåé‡æ–°åˆ†é…
+				Reset(allc, user, j,av);
+				//å¯¹è¯¥ç”¨æˆ·åˆ†é…
+				AverageChoose(allc, user, j,av);
 				if (allc[user][0] == 0)
 					break;
 			}
 		}
 		return;
 	}
-	//·ÖÅäÍê¼ÌĞøÏÂÒ»¸ö
+	//åˆ†é…å®Œç»§ç»­ä¸‹ä¸€ä¸ª
 	else
 	{
-		AverageChoose(allc, user + 1, 1);
+		AverageChoose(allc, user + 1, 1,av);
 		return;
 	}
 }
@@ -277,20 +296,42 @@ int IsEffect(vector<vector<int>>& CountJu)
 	return -1;
 }
 
-
-//Ê±¼ä½ÚµãÉÏµÄ·ÖÅä 
-void DealOneAlg(int Min_time, int Max_time, UserManage* Um, NodeManage* Nm)
+void InitAverCount(vector<vector<int>>& CountJu)
 {
-	//³õÊ¼»¯¼ÆËã¾ØÕó
+	for (int i = 1; i < CountJu.size(); i++)
+	{
+		int SumCount = 0;
+		for (int j = 1; j < CountJu[i].size(); j++)
+		{
+			if (CountJu[i][j] == 0 && CountJu[0][j]>0)
+				SumCount++;
+		}
+		int AvergCount = CountJu[i][0] / SumCount;
+		for (int j = 1; j < CountJu[i].size(); j++)
+		{
+			if (CountJu[0][j] > AvergCount && CountJu[i][j]==0)
+			{
+				CountJu[0][j] -= AvergCount;
+				CountJu[i][j] += AvergCount;
+				CountJu[i][0] -= AvergCount;
+			}
+		}
+	}
+}
+ofstream outfile(file_output);
+//æ—¶é—´èŠ‚ç‚¹ä¸Šçš„åˆ†é… 
+void DealOneAlg(int Min_time, int Max_time, UserManage* Um, NodeManage* Nm,bool av)
+{
+	//åˆå§‹åŒ–è®¡ç®—çŸ©é˜µ
 	vector<string>Usernames = Um->Get_usersnames();
 	vector<string>Nodenames = Nm->Get_Nodenames();
 	vector<vector<int>> CountJu(Usernames.size() + 1, vector<int>(Nodenames.size() + 1));
-	//ĞĞÍ· ÓÃ»§ËùĞè´ø¿í
-	//ÁĞÍ· NodeËùÓµÓĞµÄ´ø¿í
+	//è¡Œå¤´ ç”¨æˆ·æ‰€éœ€å¸¦å®½
+	//åˆ—å¤´ Nodeæ‰€æ‹¥æœ‰çš„å¸¦å®½
 
-	ofstream outfile(file_output);
 
-	//³õÊ¼»¯¾ØÕó·ÖÅäÊıÖµ ²»ÄÜ·ÖÅäÎª-1
+
+	//åˆå§‹åŒ–çŸ©é˜µåˆ†é…æ•°å€¼ ä¸èƒ½åˆ†é…ä¸º-1
 	for (int i = 0; i < Nodenames.size(); i++)
 	{
 		vector<bool> flags = Nm->Get_UsefulUser(Nodenames[i]);
@@ -298,34 +339,45 @@ void DealOneAlg(int Min_time, int Max_time, UserManage* Um, NodeManage* Nm)
 		{
 			if (flags[j])
 				CountJu[j+1][i+1] = 0;
-			else //²»ÄÜ·ÖÅä½ÚµãÖÃÎª-1
+			else //ä¸èƒ½åˆ†é…èŠ‚ç‚¹ç½®ä¸º-1
 				CountJu[j+1][i+1] = -1;
 		}
 	}
 	for (int i = Min_time; i < Max_time; i++)
 	{
 		vector<vector<int>> CountJuTemp = CountJu;
-		//»ñÈ¡µ±Ç°Ê±¿ÌÏÂµÄÓ³Éä
+		//è·å–å½“å‰æ—¶åˆ»ä¸‹çš„æ˜ å°„
 
 		for (int k = 1; k < Usernames.size() + 1; k++)
 		{
 
-			//ÁĞÍ·
+			//åˆ—å¤´
 			CountJuTemp[k][0] = Um->GetWidth(i, Usernames[k - 1]);
 		}
 		for (int j = 1; j < Nodenames.size() + 1; j++)
 		{
-			//ĞĞÍ·
+			//è¡Œå¤´
 			CountJuTemp[0][j] = Nm->GetWidth(Nodenames[j - 1]);
 		}
+		if(av)
+		InitAverCount(CountJuTemp);
 		int Reuslt = 1;
+		static int node_number = 1;
 		while (Reuslt != -1)
 		{
-			AverageChoose(CountJuTemp, Reuslt, 1);
+			AverageChoose(CountJuTemp, Reuslt, node_number,av);
+			// if(!av)
+			// {
+				if((node_number+1) %(CountJuTemp[0].size() )== 0)
+				node_number =1;
+				else
+				node_number = (node_number + 1)%(CountJuTemp[0].size());
+			// }
 			Reuslt = IsEffect(CountJuTemp);
 		}
-		//»ñµÃ·ÖÅä½á¹û
+	
 
+		//è·å¾—åˆ†é…ç»“æœ
 		for (int i = 1; i < CountJuTemp.size(); i++)
 		{
 			outfile << Usernames[i - 1] << ":";
@@ -346,27 +398,27 @@ void DealOneAlg(int Min_time, int Max_time, UserManage* Um, NodeManage* Nm)
 }
 int main()
 {
-	//»ñÈ¡¿Í»§¿í´øĞèÇó
+	//è·å–å®¢æˆ·å®½å¸¦éœ€æ±‚
 	DatasStruct UserWidths = GetData(file_root + file_Demand);
 
-	//»ñÈ¡±ßÔµ½Úµã´ø¿íÊı
+	//è·å–è¾¹ç¼˜èŠ‚ç‚¹å¸¦å®½æ•°
 	DatasStruct NodeWidths = GetData(file_root + file_Bandwidth);
 
-	//»ñÈ¡¿Í»§Óë±ßÔµ½ÚµãÍøÂçÊ±ÑÓ
+	//è·å–å®¢æˆ·ä¸è¾¹ç¼˜èŠ‚ç‚¹ç½‘ç»œæ—¶å»¶
 	DatasStruct PeopleQos = GetData(file_root + file_qos);
 
-	//»ñÈ¡config
+	//è·å–config
 	int qos = ReadQos(file_root + file_config);
 
 	UserManage* Um = new UserManage;
 	NodeManage* Nm = new NodeManage;
 
 
-	//»ñµÃĞèÒªµ÷¶ÈµÄ×î´óÊ±¿ÌÊı
+	//è·å¾—éœ€è¦è°ƒåº¦çš„æœ€å¤§æ—¶åˆ»æ•°
 	int Max_times = UserWidths.Datas.size();
 
 
-	//³õÊ¼»¯ÓÃ»§ 
+	//åˆå§‹åŒ–ç”¨æˆ· 
 	for (int i = 1; i < PeopleQos.headName.size(); i++)
 	{
 
@@ -374,7 +426,7 @@ int main()
 		Um->PushName(username);
 	}
 
-	//³õÊ¼»¯node
+	//åˆå§‹åŒ–node
 	for (int i = 0; i < NodeWidths.Datas.size(); i++)
 	{
 		string Nodename = NodeWidths.Datas[i][0];
@@ -384,12 +436,12 @@ int main()
 	}
 
 
-	//³õÊ¼»¯Node¿ÉÓÃÓÃ»§
+	//åˆå§‹åŒ–Nodeå¯ç”¨ç”¨æˆ·
 	for (int i = 0; i < PeopleQos.Datas.size(); i++)
 	{
 		for (int j = 1; j < PeopleQos.Datas[i].size(); j++)
 		{
-			//ÑÓ³ÙĞ¡ÓÚãĞÖµ
+			//å»¶è¿Ÿå°äºé˜ˆå€¼
 			int this_Qos = atoi(PeopleQos.Datas[i][j].c_str());
 			string Nodename = PeopleQos.Datas[i][0];
 			if (this_Qos < qos)
@@ -403,24 +455,25 @@ int main()
 	}
 
 
-	//³õÊ¼»¯ÓÃ»§²»Í¬Ê±¿ÌËùĞè´ø¿í
+	//åˆå§‹åŒ–ç”¨æˆ·ä¸åŒæ—¶åˆ»æ‰€éœ€å¸¦å®½
 	for (int time = 0; time < UserWidths.Datas.size(); time++)
 	{
 		for (int j = 1; j < UserWidths.Datas[time].size(); j++)
 		{
 			string Username = UserWidths.headName[j];
-			//»ñµÃ¸ÃÊ±¿ÌÏÂÓÃ»§
+			//è·å¾—è¯¥æ—¶åˆ»ä¸‹ç”¨æˆ·
 			int width = atoi(UserWidths.Datas[time][j].c_str());
-			//ÉèÖÃ¸ÃÊ±¿ÌÏÂÓÃ»§ËùĞè´ø¿í
+			//è®¾ç½®è¯¥æ—¶åˆ»ä¸‹ç”¨æˆ·æ‰€éœ€å¸¦å®½
 			Um->SetWidth(time, width, Username);
 		}
 	}
 
 
 
-	//ÔËĞĞµ÷¶ÈËã·¨
+	//è¿è¡Œè°ƒåº¦ç®—æ³•
 	int Min_time = 0;
-
-	DealOneAlg(Min_time, Max_times, Um, Nm);
+	int n_time = Max_times*0.07;
+	DealOneAlg(Min_time, n_time, Um, Nm,false);
+	DealOneAlg(n_time, Max_times, Um, Nm,true);
 	return 0;
 }
