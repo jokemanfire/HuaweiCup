@@ -25,6 +25,7 @@
         "list": "cpp",
         "xhash": "cpp",
         "xiosbase": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "iterator": "cpp"
     }
 }
