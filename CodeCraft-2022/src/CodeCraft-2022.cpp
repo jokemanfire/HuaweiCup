@@ -22,72 +22,14 @@ string file_qos = "qos.csv";
 string file_config = "config.ini";
 string file_output = "/output/solution.txt";
 
-int ALLMax_times = 1;
-void InitAverCount(vector<vector<int>>& CountJu);
-
 //一般数据格式内容
 class DatasStruct {
 public:
 	vector<string> headName;
 	vector<vector< string>> Datas;
 };
-//用户类
-class User
-{
 
-private:
-	//用户的需求带宽
-	int Need_width;
-	//用户可用节点数（可变）
-	int Usefulsize;
-public:
-	//获得用户当前时刻下带宽需求
-	int GetNeed_width() { return Need_width; };
-	//设置用户当前时刻下带宽需求
-	void SetNeed_width(int width) { Need_width = width; };
-};
-
-
-//节点类
-class Node
-{
-private:
-	//当前最大带宽
-	int MaxWidth;
-
-public:
-	//设置最大带宽 
-	void SetMaxWidth(int width) { MaxWidth = width; };
-	//获得当前带宽
-	int GetWidth() { return MaxWidth; };
-	//修改当前可用带宽
-	void ADDWidth(int width) { MaxWidth -= width; };
-
-};
-
-struct MinHeapCmp
-{
-	inline bool operator()(map<int, int>& x, map<int, int>& y)
-	{
-		return x.begin()->second > y.begin()->second;
-	}
-};
-
-class MyHeap
-{
-private:
-	vector<map<int, int>> Indexs;
-	int max_size = 5;
-	map<int, int> Drop_index;
-public:
-	MyHeap() { make_heap(Indexs.begin(), Indexs.end(), MinHeapCmp()); };
-	bool Pushdata(map<int, int> data);
-	map<int, int> GetDrop_index() { return Drop_index; };
-	vector<map<int, int>>& GetIndex() {
-		return Indexs;
-	};
-	void SetMax_size(int size) { max_size = size; };
-};
+vector<vector<bool>>Node_User;
 
 class UserManage
 {
@@ -96,13 +38,16 @@ private:
 	vector<string> Usernames;
 	//不同时刻用户所需带宽
 	vector<unordered_map<string, int>> WidthNeed;
+
 public:
 	vector<string>& Get_usersnames() { return Usernames; };
 	void SetWidth(int time, int width, string name) { WidthNeed.resize(time + 1); WidthNeed[time][name] = width; }
 	int GetWidth(int time, string name) {
 		return WidthNeed[time][name];
 	}
+	unordered_map<string, int> GetWidths(int time) { return WidthNeed[time]; };
 	void PushName(string name) { Usernames.push_back(name); };
+
 };
 
 class NodeManage
@@ -111,71 +56,24 @@ private:
 	//所有用户节点
 	vector<string> Nodenames;
 	//存储目标节点下的可用用户名称
-	unordered_map<string, vector<bool>> UsefulUser_flag;
+	//unordered_map<string, vector<bool>> UsefulUser_flag;
 	//存储node的带宽
 	unordered_map<string, int> Node_Width;
-	//存储时刻下最大使用节点
-	vector<vector<int>>Time_node;
+
+
 public:
 	vector<string>& Get_Nodenames() { return Nodenames; };
-	void AddNode_Usefuluser(string nodename, bool flag) { UsefulUser_flag[nodename].push_back(flag); };
-	vector<bool>& Get_UsefulUser(string nodename) { return UsefulUser_flag[nodename]; };
 	void SetWidth(string name, int width) { Node_Width[name] = width; };
 	int GetWidth(string name) {
 		return Node_Width[name];
 	}
 	void PushName(string name) { Nodenames.push_back(name); };
-	vector<vector<int>>& GetTimeNode() {
-		return Time_node;
-	};
-	//存储优先分配节点次数
-	vector<int> Node_count;
-	//存储分配次数
-	vector<float> Node_float;
-	vector<vector<int>>Cost_time;
-	vector<MyHeap*>Node_heap;
-	vector < vector < bool>> UnconNodes;
+
+	/*void AddNode_Usefuluser(string nodename, bool flag) { UsefulUser_flag[nodename].push_back(flag); };
+	vector<bool>& Get_UsefulUser(string nodename) { return UsefulUser_flag[nodename]; };*/
 };
 
 
-
-bool MyHeap::Pushdata(map<int, int> data)
-{
-	if (Indexs.size() == max_size)
-	{
-		/*sort_heap(Indexs.begin(), Indexs.end(), MinHeapCmp());*/
-		map<int, int> First = Indexs[0];
-		//如果传入数据比堆数据小
-		if (data.begin()->second <= First.begin()->second)
-		{
-			Drop_index = data;
-			//make_heap(Indexs.begin(), Indexs.end());
-			return false;
-		}
-		else
-		{
-			pop_heap(Indexs.begin(), Indexs.end());
-			map<int, int> temp = Indexs.back();
-			Indexs.pop_back();
-			Indexs.push_back(data);
-			push_heap(Indexs.begin(), Indexs.end(), MinHeapCmp());
-			Drop_index = temp;
-			//make_heap(Indexs.begin(), Indexs.end());
-			return false;
-		}
-	}
-	else
-	{
-		//如果堆的大小比最大小 直接放入
-		if (Indexs.size() < max_size)
-		{
-			Indexs.push_back(data);
-			push_heap(Indexs.begin(), Indexs.end(), MinHeapCmp());
-		}
-		return true;
-
-	}
-}
 
 //字符串切割方法
 std::vector<std::string> stringSplit(const std::string& str, char delim) {
@@ -246,158 +144,91 @@ int ReadQos(string filepath)
 	return atoi(Result.c_str());
 }
 
-//超级贪心算法 user对目标用户分配，node 对目标节点分配
-int ChooseNode(vector<vector<int>>& allc,int user, vector<bool> &UnconNode)
-{
-	vector<int> allNodecount(allc[0].size()-1, 0);
-	int index = -1;
-	for (int i = 1; i < allc[0].size(); i++)
-	{
-		int NodeWidt = 0;
-		if (allc[user][i] == -1 || allc[0][i] == 0)
-		{
-			allNodecount[i - 1] = -1;
-			continue;
-		}
-			
-		for (int j = 1; j < allc.size(); j++)
-		{
-			int this_need = allc[j][0];
-			if(this_need != -1  )
-			NodeWidt += this_need;
-		}
-		allNodecount[i - 1] = abs(allc[0][i] - NodeWidt);
-	}
-
-	//获取最小坐标
-	for (int i = 0; i < allNodecount.size(); i++)
-	{
-		if (UnconNode[i] == true || allNodecount[i] == -1)
-			continue;
-		if (index != -1 && allNodecount[i] < allNodecount[index])
-			index = i;
-		else if (index == -1)
-			index = i;
-	}
-	//如果实在没有选择
-	if (index == -1)
-		return -1;
-	return index + 1;
-}
-
 //针对一个用户的分配
 void NodeAssign(vector<vector<int>>& allc, int user, int node)
 {
-	int j = node;
-	// if(av)
-	// 	j = rand()% (allc[user].size()-1)+1;
-	int Max_Count = allc[user].size();
-	int Count = 0;
-	while (Count < Max_Count)
+	int j = 1;
+	while (j < allc[0].size())
 	{
-		//每次选择占比最大节点
-		int s;
-		s = (j + Count) % ((allc[user].size() - 1) + 1);
-		//如果不能分配
-		if (allc[user][s] == -1)
-		{
-			Count++;
-			continue;
 
+		//如果不能分配
+		if (allc[user][j] == -1)
+		{
+			j++;
+			continue;
 		}
 		else
 		{
 			//节点可分配为0
-			if (allc[0][s] == 0)
+			if (allc[0][j] == 0)
 			{
-				Count++;
+				j++;
 				continue;
 			}
-
+			int Width_use = 0;
 			//用户需求小于等于可分配
-			if (allc[user][0] <= allc[0][s])
+			if (allc[user][0] <= allc[0][j])
 			{
-				allc[user][s] += allc[user][0];
-				allc[0][s] -= allc[user][0];
-				allc[user][0] -= allc[user][0];
+				Width_use = allc[user][0];
+
 			}
 			//用户需求大于可分配
 			else
 			{
-				//该分配所有带宽
-				//更新所分配位置
-				allc[user][s] += allc[0][s];
-				int temp = allc[user][0];
-				//更新用户需求
-				allc[user][0] -= allc[0][s];
-				//更新节点带宽
-				allc[0][s] -= allc[0][s];
+				Width_use = allc[0][j];
 			}
+			allc[user][j] += Width_use;
+			allc[0][j] -= Width_use;
+			allc[user][0] -= Width_use;
 		}
-		Count++;
+		j++;
 	}
+	return;
 }
 //重新分配
-void Reset(vector<vector<int>>& allc, int user, int node)
+int  Reset(vector<vector<int>>& allc, int user, int node)
 {
 	//减少分配
 	int Rest_width = allc[user][0];
 	int i = node;
-	// if(av)
-	// 	i = rand()% (user-1)+1;
-	int Max_Count = user;
+
+	int Max_Count = allc.size();
 	int Count = 1;
 	while (Count < Max_Count)
 	{
 		//如果可分配
-		if (allc[Count][node] != -1)
+		if (allc[Count][node] != -1 && allc[Count][node] != 0)
 		{
-			//如果已分配大于需求
-			if (allc[Count][node] >= Rest_width)
-			{
-				allc[Count][node] -= Rest_width;
-				allc[Count][0] += Rest_width;
-				allc[0][node] += Rest_width;
-				Rest_width -= Rest_width;
-
-			}
-			//如果已分配小于需求
-			else
-			{
-				Rest_width -= allc[Count][node];
-				allc[0][node] += allc[Count][node];
-				allc[Count][node] -= allc[Count][node];
-			}
+			int Width_use = Rest_width;
+			allc[Count][node] -= Width_use;
+			allc[Count][0] += Width_use;
+			allc[0][node] += Width_use;
+			//Rest_width -= Width_use;
 		}
+		/*	if (Rest_width == 0)
+				break;*/
 		Count++;
 	}
+	return Rest_width;
 }
 
 void AverageChoose(vector<vector<int>>& allc, int user, int node)
 {
 	if (user < allc.size())
 	{
-		
 		NodeAssign(allc, user, node);
 	}
 	else
 		return;
 	//如果没有分配完
 	if (allc[user][0] != 0)
-	{
-		for (int j = 1; j < allc[user].size(); j++)
-		{
-			if (allc[user][j] >= 0)
-			{
-				//Reset后重新分配
-				Reset(allc, user, j);
-				//对该用户分配
-				AverageChoose(allc, user, j);
-			}
-		}
-	
-
+	{	
+		//Reset后重新分配 前面全部重分
+		int result = Reset(allc, user, node);			
+		//对该用户分配
+		AverageChoose(allc, user, node+1);
 		return;
+		
 	}
 	//分配完继续下一个
 	else
@@ -406,7 +237,7 @@ void AverageChoose(vector<vector<int>>& allc, int user, int node)
 		return;
 	}
 }
-
+//是否为有效解
 int IsEffect(vector<vector<int>>& CountJu)
 {
 	for (int i = 0; i < CountJu.size(); i++)
@@ -417,293 +248,252 @@ int IsEffect(vector<vector<int>>& CountJu)
 	return -1;
 }
 
-void InitAverCount(vector<vector<int>>& CountJu)
+//把分配节点的交集去掉
+int  Rellcumer(int node , int cost ,vector<int>&UserMax,vector<int>& UserNeed, vector<vector<int>>& UserCost)
 {
-	for (int i = 1; i < CountJu.size(); i++)
+	//vector<int>& UserNeedTemp = UserNeed;
+	////寻找使用该节点的用户
+	//for (int user = 0; user < Node_User[0].size(); user++)
+	//{
+	//	//如果使用了该节点 从交集中剔除
+	//	if (Node_User[node][user] == true)
+	//	{
+	//		int Width_cs=0;
+	//		if (UserNeedTemp[user] <= cost)
+	//			Width_cs = UserNeedTemp[user];
+	//		else
+	//			Width_cs = cost;
+	//		cost -= Width_cs;
+	//		UserNeedTemp[user] -= Width_cs;
+	//		//从交集剔除
+	//		for (int j = 0; j < Node_User.size(); j++)
+	//		{
+	//			if (Node_User[j][user] == true)
+	//				UserMax[j] -= Width_cs;
+	//		}
+	//	}
+	//}
+	//针对该节点对用户进行分配
+	for (int user = 0; user < UserNeed.size(); user++)
 	{
-		int SumCount = 0;
-		for (int j = 1; j < CountJu[i].size(); j++)
+		//如果使用了该节点
+		if (Node_User[node][user] == true)
 		{
-			if (CountJu[i][j] == 0 && CountJu[0][j] > 0)
-				SumCount++;
-		}
-		if (SumCount == 0)
-			return;
-		int AvergCount = CountJu[i][0] / SumCount;
-		for (int j = 1; j < CountJu[i].size(); j++)
-		{
-			if (CountJu[0][j] > AvergCount && CountJu[i][j] == 0)
-			{
-				CountJu[0][j] -= AvergCount;
-				CountJu[i][j] += AvergCount;
-				CountJu[i][0] -= AvergCount;
-			}
-		}
-	}
-}
-
-void InitMaxData(vector<vector<int>>& CountJu, int node)
-{
-	for (int i = 1; i < CountJu.size(); i++)
-	{
-		//如果节点可分配带宽大于0 && 节点为联通
-		if (CountJu[0][node] > 0 && CountJu[i][node] != -1)
-		{
-
-			//如果能全分配
-			if (CountJu[0][node] >= CountJu[i][0])
-			{
-				CountJu[0][node] -= CountJu[i][0];
-				CountJu[i][node] += CountJu[i][0];
-				CountJu[i][0] -= CountJu[i][0];
-			}
-			//不能全分配
+			int Width_cs = 0;
+			if (UserNeed[user] <= cost)
+				Width_cs = UserNeed[user];
 			else
+				Width_cs = cost;
+			cost -= Width_cs;
+			UserNeed[user] -= Width_cs;
+			UserCost[user][node] += Width_cs;
+			//从交集剔除
+			for (int j = 0; j < Node_User.size(); j++)
 			{
-				CountJu[i][0] -= CountJu[0][node]; //该用户
-				CountJu[i][node] += CountJu[0][node]; //该用户的该节点
-				CountJu[0][node] -= CountJu[0][node]; //该节点
+				if (Node_User[j][user] == true)
+					UserMax[j] -= Width_cs;
 			}
 		}
 	}
+	if (cost != 0)
+		cout << endl;
+	return accumulate(UserNeed.begin(), UserNeed.end(), 0);
+
+	//return;
 }
 
-//对节点最大值初始化
-bool InitMaxCount(vector<vector<int>>& CountJu, vector<bool>& UnconNode)
+void UserCustomer(vector<int>& Node_Useful, vector<int>& Userneeded, NodeManage* Nm, UserManage* Um, ofstream& outfile);
+//1、不同时刻用户需求带宽  2.不同时刻下节点使用带宽 3、不同时刻下 的不同节点最大可用带宽 4、不同时刻下节点剩余带宽
+
+void Diaodu(vector<int> & Time_UserNeed, vector<vector<int>> & Time_NodeUsed,vector<vector<int>> &Time_UserMax,vector<vector<int>> & Time_NodeRest,UserManage * Um,NodeManage * Nm, ofstream& outfile)
 {
-	for (int i = 1; i < CountJu.size(); i++)
-	{
-		int node = ChooseNode(CountJu, i, UnconNode);
-		//该用户没有适配节点跳过
-		if (node == -1)
-			continue;
-		//如果节点可分配带宽大于0 && 节点为联通
-		if (CountJu[0][node] > 0 && CountJu[i][node] != -1)
-		{
+	
+	vector<string> Usernames = Um->Get_usersnames();
+	vector<string> Nodenames = Nm->Get_Nodenames();
+	//每次分配尽量去选择没被分配的节点
+	//尽量做到负载均衡
+	vector<int> Nodes_index;
+	for (int i = 0; i < Time_NodeUsed[0].size(); i++)
+		Nodes_index.push_back(i);
 
-			//如果能全分配
-			if (CountJu[0][node] >= CountJu[i][0])
+	int rand_point = Nodes_index.size()-1 ;
+	for (int time = 0; time < Time_UserNeed.size(); time++)
+	{
+		string result;
+		vector<int> User_Needed;
+		//获取该时刻下用户需求
+		for (int i = 0; i < Usernames.size(); i++)
+			User_Needed.push_back(Um->GetWidth(time, Usernames[i]));
+		vector<int> Const_User_Needed = User_Needed;
+		//获得用户分配
+		vector<vector<int>> CountJu(Usernames.size() , vector<int>(Nodenames.size()));
+		while (Time_UserNeed[time] != 0)
+		{
+			if (rand_point >=0)
 			{
-				CountJu[0][node] -= CountJu[i][0];
-				CountJu[i][node] += CountJu[i][0];
-				CountJu[i][0] -= CountJu[i][0];
-			}
-			//不能全分配
-			else
-			{
-				CountJu[i][0] -= CountJu[0][node]; //该用户
-				CountJu[i][node] += CountJu[0][node]; //该用户的该节点
-				CountJu[0][node] -= CountJu[0][node]; //该节点
-			}
-		}
-	}
-	return true;
-}
-
-//时间节点上的分配 
-void DealOneAlg(int Min_time, int Max_time, UserManage* Um, NodeManage* Nm, bool av, ofstream& outfile, int node_number = 1)
-{
-	//初始化计算矩阵
-	vector<string>Usernames = Um->Get_usersnames();
-	vector<string>Nodenames = Nm->Get_Nodenames();
-	vector<vector<int>> CountJu(Usernames.size() + 1, vector<int>(Nodenames.size() + 1));
-
-
-	//初始化矩阵分配数值 不能分配为-1
-	for (int i = 0; i < Nodenames.size(); i++)
-	{
-		vector<bool> flags = Nm->Get_UsefulUser(Nodenames[i]);
-		for (int j = 0; j < flags.size(); j++)
-		{
-			if (flags[j])
-				CountJu[j + 1][i + 1] = 0;
-			else //不能分配节点置为-1
-				CountJu[j + 1][i + 1] = -1;
-		}
-	}
-
-	for (int i = Min_time; i < Max_time; i++)
-	{
-		vector<vector<int>> CountJuTemp = CountJu;
-		//获取当前时刻下的映射
-
-		for (int k = 1; k < Usernames.size() + 1; k++)
-		{
-			//列头
-			CountJuTemp[k][0] = Um->GetWidth(i, Usernames[k - 1]);
-		}
-		for (int j = 1; j < Nodenames.size() + 1; j++)
-		{
-			//行头
-			CountJuTemp[0][j] = Nm->GetWidth(Nodenames[j - 1]);
-		}
-		if (av)
-		{
-			InitAverCount(CountJuTemp);
-		}
-		else
-			InitMaxData(CountJuTemp, node_number);
-		int Reuslt = 1;
-		while (Reuslt != -1)
-		{
-			AverageChoose(CountJuTemp, Reuslt, node_number);
-			Reuslt = IsEffect(CountJuTemp);
-		}
-		//获得分配结果
-		for (int i = 1; i < CountJuTemp.size(); i++)
-		{
-			outfile << Usernames[i - 1] << ":";
-			string tempdata;
-			for (int j = 1; j < CountJuTemp[i].size(); j++)
-				if (CountJuTemp[i][j] > 0)
+				//随机选择一名幸运节点
+				int choose = Nodes_index[rand() % (rand_point+1)];
+				if (choose != rand_point)
 				{
-					tempdata = tempdata + "<" + Nodenames[j - 1] + "," + to_string(CountJuTemp[i][j]) + ">" + ",";
+					int temp = Nodes_index[rand_point];
+					Nodes_index[rand_point] = Nodes_index[choose];
+					Nodes_index[choose] = temp;
 				}
-			if (tempdata.size() > 0)
-				tempdata.pop_back();
-			outfile << tempdata;
-			outfile << endl;
+				rand_point--;
+				//如果取了该节点 意味着 在该节点交集下的用户需求断开
+				 
+				
+				int cost_width = 0;
+				//如果用户需求带宽大于可用带宽
+				if (Time_UserNeed[time] > Time_UserMax[time][choose])
+				{
+					
+					//如果用户需求大于剩余带宽
+					if (Time_UserNeed[time] > Time_NodeRest[time][choose])
+					{
+						cost_width = Time_NodeRest[time][choose]> Time_UserMax[time][choose]? Time_UserMax[time][choose]: Time_NodeRest[time][choose];
+					}
+					//如果用户带宽小于剩余带宽
+					else{
+						cost_width = Time_UserMax[time][choose];
+					}
+					//将使用该节点的用户需求减少
+					Time_UserNeed[time] = Rellcumer(choose,cost_width,Time_UserMax[time],User_Needed, CountJu);
+					//Time_UserNeed[time] -= cost_width;
+					Time_NodeRest[time][choose] -= cost_width;
+					//Time_NodeUsed[time][choose] += Nm->GetWidth(Nm->Get_Nodenames()[choose]);
+				}
+				//如果用户需求带宽小于等于可用带宽
+				else
+				{
+					//如果用户需求大于剩余带宽
+					if (Time_UserNeed[time] > Time_NodeRest[time][choose])
+					{
+						cost_width = Time_NodeRest[time][choose];
+					}
+					//如果用户带宽小于剩余带宽
+					else{
+						cost_width = Time_UserNeed[time];
+					}
+					//将使用该节点的用户需求减少
+					Time_UserNeed[time] = Rellcumer(choose, cost_width, Time_UserMax[time], User_Needed,CountJu);
+					//Time_UserNeed[time] -= cost_width;
+					Time_NodeRest[time][choose] -= cost_width;
+					//Time_NodeUsed[time][choose] += Nm->GetWidth(Nm->Get_Nodenames()[choose]);
+				}
+	
+			}
+			//随机节点使用完毕 重新初始化
+			else
+			{
+				rand_point = Nodes_index.size() - 1;
+			}
 		}
+		//将结果输出
+	/*	int a = accumulate(Time_NodeUsed[time].begin(), Time_NodeUsed[time].end(), 0);
+		int b = accumulate(Const_User_Needed.begin(), Const_User_Needed.end(), 0);
+		UserCustomer(Time_NodeUsed[time], Const_User_Needed, Nm, Um, outfile);
+		std::cout << time<<endl;*/
+		//结果输出
+		for (int user = 0; user < CountJu.size(); user++)
+		{
+
+			string username = Usernames[user];
+			result = result + Usernames[user] + ":";
+			bool Cath = false;
+			for (int node = 0; node < CountJu[user].size(); node++)
+			{
+				if (CountJu[user][node] == 0 || CountJu[user][node] == -1)
+					continue;
+				else
+				{
+					result = result + "<" + Nodenames[node] + "," + to_string(CountJu[user][node]) + ">" + ",";
+					Cath = true;
+				}
+
+			}
+			if (Cath)
+				result.pop_back();
+			result += "\n";
+		}
+		outfile << result;
+		
 	}
 	return;
 }
 
-int GetNode(vector<vector<int>>& allc, int user, vector<float>& NodeCount)
+//将结果输出 节点可用的大小
+void UserCustomer(vector<int> &Node_Useful,vector<int> &Userneeded, NodeManage * Nm, UserManage * Um, ofstream & outfile)
 {
-	vector<int> allNodecount(allc[0].size() - 1, 0);
-	int index = 0;
-	for (int i = 1; i < allc[0].size(); i++)
-	{
-		int NodeWidt = 0;
-		if (allc[user][i] == -1 || allc[0][i] == 0)
-		{
-			allNodecount[i - 1] = -1;
-			continue;
-		}
+	vector<string> Usernames = Um->Get_usersnames();
+	vector<string> Nodenames = Nm->Get_Nodenames();
+	string result;
 
-		for (int j = 1; j < allc.size(); j++)
-		{
-			int this_need = allc[j][0];
-			if (this_need != -1)
-				NodeWidt += this_need;
-		}
-		allNodecount[i - 1] = abs(allc[0][i] - NodeWidt);
-		index = i - 1;
-	}
+	//用回溯法计算用户分配
 
-	//获取最小坐标
-	for (int i = 0; i < allNodecount.size(); i++)
-	{
-
-		if (allNodecount[i] >= 0 && allNodecount[i] < allNodecount[index])
-			index = i;
-	}
-	return index + 1;
-}
-
-void InitMax(int time, UserManage* Um, NodeManage* Nm)
-{
-	
-	vector<string>Usernames = Um->Get_usersnames();
-	vector<string>Nodenames = Nm->Get_Nodenames();
 	vector<vector<int>> CountJu(Usernames.size() + 1, vector<int>(Nodenames.size() + 1));
 	//行头 用户所需带宽
 	//列头 Node所拥有的带宽
 
-
-
 	//初始化矩阵分配数值 不能分配为-1
-	for (int i = 0; i < Nodenames.size(); i++)
+	for (int i = 0; i < Node_User.size(); i++)
 	{
-		vector<bool> flags = Nm->Get_UsefulUser(Nodenames[i]);
-		for (int j = 0; j < flags.size(); j++)
+		for (int j = 0; j < Node_User[i].size(); j++)
 		{
-			if (flags[j])
+			if (Node_User[i][j])
 				CountJu[j + 1][i + 1] = 0;
 			else //不能分配节点置为-1
 				CountJu[j + 1][i + 1] = -1;
 		}
 	}
 
-
-
 	//获取当前时刻下的映射
-
 	for (int k = 1; k < Usernames.size() + 1; k++)
 	{
 		//列头
-		CountJu[k][0] = Um->GetWidth(time, Usernames[k - 1]);
+		CountJu[k][0] = Userneeded[k-1];
 	}
 	for (int j = 1; j < Nodenames.size() + 1; j++)
 	{
 		//行头
-		CountJu[0][j] = Nm->GetWidth(Nodenames[j - 1]);
+		CountJu[0][j] = Node_Useful[j-1];
 	}
-	
 	int Reuslt = 1;
-	/*while (Reuslt != -1)
+	while (Reuslt != -1)
 	{
 		AverageChoose(CountJu, Reuslt, 1);
 		Reuslt = IsEffect(CountJu);
-	}*/
-	InitMaxCount(CountJu, Nm->UnconNodes[time]);
-	
-	//取消耗最大
-	
-	vector<int> Customers;
-	Customers.resize(CountJu[0].size() - 1);
-	for (int i = 1; i < CountJu[0].size(); i++)
-	{
-		int UsedWidth = Nm->GetWidth(Nodenames[i - 1]) - CountJu[0][i];
-		Customers[i - 1] = UsedWidth;
 	}
-	vector<int>::iterator max_index =max_element(Customers.begin(), Customers.end());
 
-	int Max_index =  std::distance(Customers.begin(), max_index);
-	if (Customers[Max_index] != 0)
-	{
-		map<int, int> temp;
-		temp[time] = Customers[Max_index];
-		bool status = Nm->Node_heap[Max_index]->Pushdata(temp);
-		//没能放入堆里 
-		if (!status)
+	//结果输出
+	for (int user = 1; user < CountJu.size(); user++)
+	{	
+	
+		string username = Usernames[user-1];
+		result = result +Usernames[user-1] + ":";
+		bool Cath=false;
+		for (int node = 1; node < CountJu[user].size(); node++)
 		{
-
-			//针对该时间节点重新分配
-			map<int, int> tm = Nm->Node_heap[Max_index]->GetDrop_index();
-			//cout << "time " << tm.begin()->first << " 节点" << Nodenames[Max_index] << endl;
-			Nm->UnconNodes[tm.begin()->first][Max_index] = true;
-			InitMax(tm.begin()->first, Um, Nm);
+			if (CountJu[user][node] == 0 || CountJu[user][node] ==-1)
+				continue;
+			else
+			{
+				result = result + "<" + Nodenames[node-1] + "," + to_string(CountJu[user][node]) + ">" + ",";
+				Cath = true;
+			}
 
 		}
+		if (Cath)
+			result.pop_back();
+		result += "\n";
 	}
-	//全局最大 时间复杂度太高
-	//for (int i = 1; i < CountJu[0].size(); i++)
-	//{
-
-	//	int UsedWidth = Nm->GetWidth(Nodenames[i - 1]) - CountJu[0][i];
-	//	if (UsedWidth != 0)
-	//	{
-	//		map<int, int> temp;
-	//		temp[time] = UsedWidth;
-	//		bool status = Nm->Node_heap[i - 1]->Pushdata(temp);
-	//		//没能放入堆里 
-	//		if (!status)
-	//		{
-	//			//针对该时间节点重新分配
-	//			map<int, int> tm = Nm->Node_heap[i - 1]->GetDrop_index();
-	//			Nm->UnconNodes[tm.begin()->first][i-1] = true;
-	//			InitMax(tm.begin()->first, Um, Nm);				
-	//		}
-	//	}
-	//}
-	
-
+	outfile << result;
 	return;
 }
 
 int main()
 {
+	srand(time(NULL));
 	//获取客户宽带需求
 	DatasStruct UserWidths = GetData(file_root + file_Demand);
 
@@ -740,22 +530,26 @@ int main()
 		int NodeWidth = atoi(NodeWidths.Datas[i][1].c_str());
 		Nm->SetWidth(Nodename, NodeWidth);
 	}
-	ALLMax_times = Max_times;
 
+	Node_User.resize(PeopleQos.Datas.size());
 	//初始化Node可用用户
 	for (int i = 0; i < PeopleQos.Datas.size(); i++)
 	{
+		Node_User[i].resize(PeopleQos.Datas[i].size()-1);
 		for (int j = 1; j < PeopleQos.Datas[i].size(); j++)
 		{
 			//延迟小于阈值
 			int this_Qos = atoi(PeopleQos.Datas[i][j].c_str());
 			string Nodename = PeopleQos.Datas[i][0];
+			string Username = PeopleQos.Datas[0][j];
 			if (this_Qos < qos)
 			{
-				Nm->AddNode_Usefuluser(Nodename, true);
+				Node_User[i][j - 1] = true;
 			}
 			else
-				Nm->AddNode_Usefuluser(Nodename, false);
+			{
+				Node_User[i][j - 1] = false;
+			}
 		}
 	}
 
@@ -772,66 +566,62 @@ int main()
 			Um->SetWidth(time, width, Username);
 		}
 	}
-
-	vector<vector<int>>& Time_node = Nm->GetTimeNode();
-	Time_node.resize(Max_times);
-
-
+	//输出结果
 	ofstream outfile(file_output);
-	Nm->Cost_time.resize(Nm->Get_Nodenames().size());
-	for (int i = 0; i < Nm->Cost_time.size(); i++)
-		Nm->Cost_time[i].resize(Max_times);
-	
 
 
-	//求所有节点最爽的时间点
-	for (int i = 0; i < Nm->Get_Nodenames().size(); i++)
-	{
-		MyHeap * new_heap = new MyHeap;
-		int threld = Max_times * 0.05;
-		if ((Max_times * 100) % 5 == 0)
-			threld -= 1;
-		new_heap->SetMax_size(threld);
-		Nm->Node_heap.push_back(new_heap);
-	}
 
-	
+	vector<vector<int>> Time_node;
+	Time_node.resize(Max_times);
+	for (int i = 0; i < Time_node.size(); i++)
+		Time_node[i].resize(Nm->Get_Nodenames().size());
 
-	//获得时间下最适配带宽
-	Nm->UnconNodes.resize(Max_times);
-	for (int i = 0; i < Max_times; i++)
-	{
-		Nm->UnconNodes[i].resize(Nm->Get_Nodenames().size());
-	}
+	vector<string>NodeNames = Nm->Get_Nodenames();
+	vector<string>Usernames = Um->Get_usersnames();
+	//获得不同时刻的用户总需求带宽
+	vector<int> Time_UserNeed;
 	for (int time = 0; time < Max_times; time++)
 	{
-		InitMax(time, Um, Nm);
-	
-	}
-	map<int, int> TimeNode;
-	for (int i = 0; i < Nm->Node_heap.size(); i++)
-	{
-		vector<map<int, int>>& temp = Nm->Node_heap[i]->GetIndex();
-		for (int j = 0; j < temp.size(); j++)
+		int NeedWidth = 0;
+		for (int user = 0; user < Usernames.size(); user++)
 		{
-			int time = temp[j].begin()->first;
-			TimeNode[time] = i;
+			NeedWidth += Um->GetWidth(time, Usernames[user]);
 		}
-		
+		Time_UserNeed.push_back(NeedWidth );
 	}
 
-	for (int time = 0; time < Max_times; time++)
-	{
-		int node = 0;
-		if (TimeNode.count(time) != 0)
-		{
-			node = TimeNode[time];
-			DealOneAlg(time, time + 1, Um, Nm, false, outfile, node + 1);
-		}
-		else
-			DealOneAlg(time, time + 1, Um, Nm, true, outfile, node + 1);
-	}
 
+	//获得不同时刻节点的最大带宽
+	for (int time = 0; time < Time_node.size(); time++)
+	{
+		for (int node = 0; node < Nm->Get_Nodenames().size();node++)
+		{
+			vector<bool> Users = Node_User[node];
+			int Node_NeedWidth = 0;
+			for (int k = 0; k < Users.size(); k++)
+			{
+				if (Users[k])
+					Node_NeedWidth += Um->GetWidth(time, Usernames[k]);
+			}
+			Time_node[time][node] = Node_NeedWidth;
+		}
+
+	}
+	//初始化 节点的剩余带宽
+	vector<vector<int>> Time_nodeRest;
+	Time_nodeRest.resize(Max_times);
+	for (int i = 0; i < Time_nodeRest.size(); i++)
+		for(int node =0;node<NodeNames.size();node++)
+			Time_nodeRest[i].push_back(Nm->GetWidth(NodeNames[node]));
+
+	//不同时刻下 节点使用带宽
+	vector<vector<int>> Time_NodeUsed;
+	Time_NodeUsed.resize(Max_times);
+	for (int i = 0; i < Time_NodeUsed.size(); i++)
+		Time_NodeUsed[i].resize(NodeNames.size());
+
+	//节点调度算法
+	Diaodu(Time_UserNeed, Time_NodeUsed, Time_node, Time_nodeRest,Um,Nm,outfile);
 
 
 	return 0;
